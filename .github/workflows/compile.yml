@@ -41,6 +41,7 @@ jobs:
             ${{ matrix.flag }} \
             -DBOX86LIB=ON \
             -DBOX86DYNAMIC=ON \
+            -DBOX86_ROOT=.. \
             -DHAVE_TRACE=OFF \
             -DNOLOADADDR=ON \
             -DCMAKE_BUILD_TYPE=Release
