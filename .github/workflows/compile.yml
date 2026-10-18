@@ -1,0 +1,60 @@
+name: Compile CPRP Core Runner
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-android-core:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - abi: arm64-v8a
+            flag: -DARM64=ON
+          - abi: armeabi-v7a
+            flag: -DARM_DYNAREC=ON
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26b
+
+      - name: Install Toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+
+      - name: Build Library (${{ matrix.abi }})
+        run: |
+          mkdir -p build-${{ matrix.abi }}
+          cd build-${{ matrix.abi }}
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ matrix.abi }} \
+            -DANDROID_PLATFORM=android-24 \
+            -DANDROID=ON \
+            ${{ matrix.flag }} \
+            -DBOX86LIB=ON \
+            -DBOX86DYNAMIC=ON \
+            -DHAVE_TRACE=OFF \
+            -DNOLOADADDR=ON \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc) || true
+
+      - name: Collect Artifacts
+        run: |
+          mkdir -p output/${{ matrix.abi }}
+          find build-${{ matrix.abi }} -name "*.so" -exec cp {} output/${{ matrix.abi }}/ \; || true
+          find build-${{ matrix.abi }} -name "box86" -exec cp {} output/${{ matrix.abi }}/ \; || true
+          ls -R output/
+
+      - name: Upload Core Artifact (${{ matrix.abi }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-${{ matrix.abi }}
+          path: output/${{ matrix.abi }}
