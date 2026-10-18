@@ -5,6 +5,7 @@
 #include <setjmp.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <errno.h>
 #include <android/log.h>
 
 #define LOG_TAG "CPRP_CORE"
@@ -90,6 +91,20 @@ __attribute__((visibility("default"), noreturn)) void _Exit(int status) {
         longjmp(s_exit_jmp, status == 0 ? 10000 : status);
     }
     abort();
+}
+
+__attribute__((visibility("default"))) int execvp(const char* file, char* const argv[]) {
+    LOGE("execvp intercepted in CPRP bridge: attempted to execute '%s' directly. Blocked to prevent Android OS kill.", file ? file : "null");
+    fprintf(stderr, "[BOX86] Error: '%s' bukan berkas Linux ELF. Pemanggilan execvp diblokir untuk mencegah crash Android OS.\n", file ? file : "null");
+    errno = ENOEXEC;
+    return -1;
+}
+
+__attribute__((visibility("default"))) int execve(const char* pathname, char* const argv[], char* const envp[]) {
+    LOGE("execve intercepted in CPRP bridge: attempted to execute '%s'. Blocked to prevent Android OS kill.", pathname ? pathname : "null");
+    fprintf(stderr, "[BOX86] Error: '%s' execve diblokir di lingkungan Android.\n", pathname ? pathname : "null");
+    errno = ENOEXEC;
+    return -1;
 }
 
 static int run_core_internal(JNIEnv* env, jobjectArray argsArray) {
