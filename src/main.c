@@ -1279,6 +1279,7 @@ x86emu_t* GetX86Emu()
     return thread_get_emu();
 }
 
+#ifndef ANDROID
 __attribute__((constructor))
 void init_library() 
 {
@@ -1301,8 +1302,10 @@ void init_library()
     thread_set_emu(emu);
 }
 #endif
+#endif
+#endif
 
-#else
+#if !defined(BUILD_LIB) || defined(ANDROID)
 
 static void free_contextargv()
 {
