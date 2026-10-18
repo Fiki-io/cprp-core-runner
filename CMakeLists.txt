@@ -292,7 +292,7 @@ if(NOGETCLOCK)
 endif()
 
 if(BOX86LIB)
-    add_definitions(-DBUILD_LIB)
+    add_definitions(-DBUILD_LIB -DBOX86LIB=1 -DANDROID_LIB=1)
     if(BOX86DYNAMIC)
         add_definitions(-DBUILD_DYNAMIC)
     endif()

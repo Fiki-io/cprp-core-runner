@@ -1312,8 +1312,8 @@ static void free_contextargv()
 
 extern char **environ;
 
-#if defined(BOX86LIB) || defined(ANDROID_LIB)
-int box86_main(int argc, const char **argv, char **env)
+#if defined(BOX86LIB) || defined(ANDROID_LIB) || defined(BUILD_LIB) || defined(ANDROID)
+EXPORT int box86_main(int argc, const char **argv, char **env)
 #else
 int main(int argc, const char **argv, char **env)
 #endif
