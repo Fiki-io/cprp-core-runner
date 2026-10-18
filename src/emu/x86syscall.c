@@ -374,7 +374,13 @@ int clone_fn(void* arg)
     return ret;
 }
 
-#ifndef __NR_ipc
+#if defined(ANDROID)
+static int my_ipc (uint call, int first, int second, int third, void *ptr, long fifth)
+{
+    (void)call; (void)first; (void)second; (void)third; (void)ptr; (void)fifth;
+    return -ENOSYS;
+}
+#elif !defined(__NR_ipc)
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>

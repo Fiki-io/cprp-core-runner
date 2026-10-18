@@ -2629,6 +2629,31 @@ EXPORT int32_t my_execvpe(x86emu_t* emu, const char* path, char* const argv[], c
     #endif
 }
 
+#ifdef ANDROID
+#include <spawn.h>
+#include <unistd.h>
+#include <sys/wait.h>
+extern char **environ;
+__attribute__((weak))
+int posix_spawnp(pid_t *pid, const char *file,
+                 const posix_spawn_file_actions_t *file_actions,
+                 const posix_spawnattr_t *attrp,
+                 char *const argv[], char *const envp[])
+{
+    (void)file_actions;
+    (void)attrp;
+    pid_t p = fork();
+    if (p == -1) return errno;
+    if (p == 0) {
+        if (envp) environ = (char**)envp;
+        execvp(file, argv);
+        _exit(127);
+    }
+    if (pid) *pid = p;
+    return 0;
+}
+#endif
+
 // execvp should use PATH to search for the program first
 EXPORT int32_t my_posix_spawnp(x86emu_t* emu, pid_t* pid, const char* path, 
     const posix_spawn_file_actions_t *actions, const posix_spawnattr_t* attrp,  char* const argv[], char* const envp[])

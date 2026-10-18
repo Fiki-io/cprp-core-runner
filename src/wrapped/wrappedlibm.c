@@ -81,11 +81,35 @@ EXPORT uint64_t my_##N##f(void* c, void* d)         \
     return ret.u64;                                 \
 }
 
-#ifdef TERMUX
-double complex clog(double complex);
-float complex clogf(float complex);
-double complex cpow(double complex, double complex);
-float complex cpowf(float complex, float complex);
+#if defined(ANDROID) || defined(TERMUX)
+#include <complex.h>
+#include <math.h>
+
+float complex clogf(float complex z) {
+    float r = hypotf(crealf(z), cimagf(z));
+    float theta = atan2f(cimagf(z), crealf(z));
+    return logf(r) + I * theta;
+}
+
+double complex cpow(double complex z, double complex w) {
+    double r = hypot(creal(z), cimag(z));
+    double theta = atan2(cimag(z), creal(z));
+    double log_r = log(r);
+    double a = creal(w) * log_r - cimag(w) * theta;
+    double b = creal(w) * theta + cimag(w) * log_r;
+    double exp_a = exp(a);
+    return (exp_a * cos(b)) + I * (exp_a * sin(b));
+}
+
+float complex cpowf(float complex z, float complex w) {
+    float r = hypotf(crealf(z), cimagf(z));
+    float theta = atan2f(cimagf(z), crealf(z));
+    float log_r = logf(r);
+    float a = crealf(w) * log_r - cimagf(w) * theta;
+    float b = crealf(w) * theta + cimagf(w) * log_r;
+    float exp_a = expf(a);
+    return (exp_a * cosf(b)) + I * (exp_a * sinf(b));
+}
 #endif
 
 GO_cFc(clog)
