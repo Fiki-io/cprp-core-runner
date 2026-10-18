@@ -3536,7 +3536,6 @@ union semun {
   struct seminfo  *__buf;  /* Buffer for IPC_INFO
                               (Linux-specific) */
 };
-#endif
 
 EXPORT int my_semctl(x86emu_t* emu, int semid, int semnum, int cmd, union semun b)
 {
@@ -3544,6 +3543,7 @@ EXPORT int my_semctl(x86emu_t* emu, int semid, int semnum, int cmd, union semun 
   iFiiiV_t f = semctl;
   return  ((iFiiiV_t)f)(semid, semnum, cmd, b);
 }
+#endif
 
 EXPORT uint32_t userdata_sign = 0x12345987;
 EXPORT uint32_t userdata[1024]; 
