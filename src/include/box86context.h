@@ -203,6 +203,7 @@ typedef struct box86context_s {
     zydis_dec_t         *dec;           // trace
 
     int                 forked;         //  how many forks... cleanup only when < 0
+    int                 count;
 
     atfork_fnc_t        *atforks;       // fnc for atfork...
     int                 atfork_sz;
