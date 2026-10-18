@@ -1,6 +1,12 @@
 #ifndef __DEBUG_H_
 #define __DEBUG_H_
 #include <stdint.h>
+#ifdef ANDROID
+#include <math.h>
+#ifndef isinff
+#define isinff(x) __builtin_isinf(x)
+#endif
+#endif
 
 typedef struct box86context_s box86context_t;
 extern int box86_log;    // log level

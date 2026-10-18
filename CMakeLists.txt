@@ -303,7 +303,7 @@ else()
 endif()
 
 
-add_definitions(-std=gnu11 -funwind-tables -fvisibility=hidden -Disinff=isinf -Disnanf=isnan -Wno-error=implicit-function-declaration -Wno-error=incompatible-function-pointer-types)
+add_definitions(-std=gnu11 -funwind-tables -fvisibility=hidden -Wno-error=implicit-function-declaration -Wno-error=incompatible-function-pointer-types)
 
 if(USE_CCACHE)
     find_program(CCACHE_FOUND ccache)
