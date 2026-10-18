@@ -6,15 +6,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-android-core:
+  build-box86-arm32:
+    name: Build Box86 (armeabi-v7a)
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - abi: arm64-v8a
-            flag: -DARM64=ON
-          - abi: armeabi-v7a
-            flag: -DARM_DYNAREC=ON
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -29,33 +23,82 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake ninja-build
 
-      - name: Build Library (${{ matrix.abi }})
+      - name: Build Shared Library (armeabi-v7a)
         run: |
-          mkdir -p build-${{ matrix.abi }}
-          cd build-${{ matrix.abi }}
+          mkdir -p build-arm32
+          cd build-arm32
           cmake .. \
             -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
-            -DANDROID_ABI=${{ matrix.abi }} \
+            -DANDROID_ABI=armeabi-v7a \
+            -DANDROID_ARM_MODE=arm \
             -DANDROID_PLATFORM=android-24 \
             -DANDROID=ON \
-            ${{ matrix.flag }} \
+            -DARM_DYNAREC=ON \
             -DBOX86LIB=ON \
             -DBOX86DYNAMIC=ON \
-            -DBOX86_ROOT=.. \
             -DHAVE_TRACE=OFF \
             -DNOLOADADDR=ON \
             -DCMAKE_BUILD_TYPE=Release
-          make -j$(nproc) || true
+          make -j$(nproc)
+          ls -la
 
       - name: Collect Artifacts
         run: |
-          mkdir -p output/${{ matrix.abi }}
-          find build-${{ matrix.abi }} -name "*.so" -exec cp {} output/${{ matrix.abi }}/ \; || true
-          find build-${{ matrix.abi }} -name "box86" -exec cp {} output/${{ matrix.abi }}/ \; || true
-          ls -R output/
+          mkdir -p output/armeabi-v7a
+          find build-arm32 -name "*.so" -exec cp {} output/armeabi-v7a/ \; || true
+          ls -la output/armeabi-v7a/
 
-      - name: Upload Core Artifact (${{ matrix.abi }})
+      - name: Upload Core Artifact (armeabi-v7a)
         uses: actions/upload-artifact@v4
         with:
-          name: core-${{ matrix.abi }}
-          path: output/${{ matrix.abi }}
+          name: core-armeabi-v7a
+          path: output/armeabi-v7a/
+
+  build-box64-arm64:
+    name: Build Box64 (arm64-v8a)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Box64
+        uses: actions/checkout@v4
+        with:
+          repository: ptitSeb/box64
+          path: box64-src
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26b
+
+      - name: Install Toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+
+      - name: Build Box64 Shared Library (arm64-v8a)
+        run: |
+          mkdir -p box64-build
+          cd box64-build
+          cmake ../box64-src \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-24 \
+            -DANDROID=ON \
+            -DARM64=ON \
+            -DDYNAREC=ON \
+            -DHAVE_TRACE=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(nproc) || true
+          ls -la
+
+      - name: Collect Artifacts
+        run: |
+          mkdir -p output/arm64-v8a
+          find box64-build -name "*.so" -exec cp {} output/arm64-v8a/ \; || true
+          find box64-build -name "box64" -exec cp {} output/arm64-v8a/ \; || true
+          ls -la output/arm64-v8a/
+
+      - name: Upload Core Artifact (arm64-v8a)
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-arm64-v8a
+          path: output/arm64-v8a/
